@@ -24,3 +24,13 @@ func (m *MongoDB) StoreRawPrices(data []model.PriceItem) error {
 
 	return nil
 }
+
+func (m *MongoDB) GetRawData() ([]model.PriceItem, error) {
+	var res model.StoreRawData
+	err := m.db.FindOne(context.Background(), bson.M{"_id": m.lastPricesReq}).Decode(&res)
+	if err != nil {
+		log.Println("Failed to decode data: ", err)
+		return nil, err
+	}
+	return res.Items, nil
+}

@@ -2,6 +2,7 @@ package service
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/LuxAeterna-git/priceHistoryService/internal/model"
 	"io/ioutil"
 	"log"
@@ -11,6 +12,7 @@ import (
 
 type Repository interface {
 	StoreRawPrices(data []model.PriceItem) error
+	GetRawData() ([]model.PriceItem, error)
 }
 
 type Service struct {
@@ -44,4 +46,26 @@ func (s *Service) GetRawData() error {
 		return err
 	}
 	return nil
+}
+
+func (s *Service) CalculateValues() error {
+	rawData, err := s.repo.GetRawData()
+	if err != nil {
+		return err
+	}
+	results := s.GasPerMonth(rawData)
+	fmt.Println(results)
+	return nil
+}
+
+func (s *Service) GasPerMonth(data []model.PriceItem) []float64 {
+	results := make([]float64, 12)
+	for _, item := range data {
+		t, err := time.Parse("06-01-02", item.Time[:8])
+		if err != nil {
+			log.Println("Failed to parse data: ", err)
+		}
+		results[t.Month()-1] += item.GasValue * item.GasPrice
+	}
+	return results
 }

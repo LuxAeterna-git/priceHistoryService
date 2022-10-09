@@ -16,4 +16,5 @@ func main() {
 	s := service.NewService(mng)
 	fmt.Println(s)
 	s.GetRawData()
+	s.CalculateValues()
 }
