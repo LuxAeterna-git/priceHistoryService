@@ -54,7 +54,8 @@ func (s *Service) CalculateValues() error {
 		return err
 	}
 	results := s.GasPerMonth(rawData)
-	fmt.Println(results)
+	avRes := s.AverageGasPerDay(rawData)
+	fmt.Println(results, avRes)
 	return nil
 }
 
@@ -66,6 +67,24 @@ func (s *Service) GasPerMonth(data []model.PriceItem) []float64 {
 			log.Println("Failed to parse data: ", err)
 		}
 		results[t.Month()-1] += item.GasValue * item.GasPrice
+	}
+	return results
+}
+
+func (s *Service) AverageGasPerDay(data []model.PriceItem) [12][31]float64 {
+	var results [12][31]float64
+	for _, item := range data {
+		t, err := time.Parse("06-01-02", item.Time[:8])
+		if err != nil {
+			log.Println("Failed to parse data: ", err)
+		}
+		results[t.Month()-1][t.Day()-1] += item.MedianGasPrice
+
+	}
+	for _, item := range results {
+		for _, i := range item {
+			i = i / 24
+		}
 	}
 	return results
 }
